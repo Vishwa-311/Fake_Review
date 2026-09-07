@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriReview AI | Fake Product Review Detector</title>
+  <meta name="description" content="State of the art machine learning detector for synthetic, sponsored, and fake customer reviews.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="glow-sphere sphere-1"></div>
+  <div class="glow-sphere sphere-2"></div>
+  
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>VeriReview <span>AI</span></h1>
+          <p class="tagline">Neural Behavioral Text & Sentiment Analysis</p>
+        </div>
+      </div>
+      <div class="status-badge" id="apiStatus">
+        <span class="pulse-dot"></span>
+        <span>Engine Online</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <!-- Left Column: Input & Controls -->
+    <section class="card input-card">
+      <div class="card-header">
+        <h2>Input Review Text</h2>
+        <span class="badge">NLP Analyzer</span>
+      </div>
+
+      <div class="sample-pills-wrapper">
+        <span class="sample-label">Quick test samples:</span>
+        <div class="sample-pills">
+          <button class="pill" id="sampleFake1">🚨 Fake: Promotional</button>
+          <button class="pill" id="sampleFake2">🚨 Fake: Exaggerated</button>
+          <button class="pill" id="sampleReal1">✅ Real: Verified Buyer</button>
+          <button class="pill" id="sampleReal2">✅ Real: Balanced Feedback</button>
+        </div>
+      </div>
+
+      <div class="textarea-container">
+        <textarea 
+          id="reviewInput" 
+          rows="6" 
+          placeholder="Paste or type product review here to analyze authenticity, stylistic anomalies, sentiment exaggeration, and spam indicators..."
+        ></textarea>
+        <div class="char-counter"><span id="charCount">0</span> characters</div>
+      </div>
+
+      <div class="threshold-slider-group">
+        <div class="slider-header">
+          <label for="thresholdRange">Sensitivity / Decision Threshold</label>
+          <span class="threshold-value" id="thresholdValue">0.50</span>
+        </div>
+        <input type="range" id="thresholdRange" min="0.10" max="0.90" step="0.01" value="0.50">
+        <div class="slider-ticks">
+          <span>0.10 (High Strictness)</span>
+          <span>0.50 (Balanced)</span>
+          <span>0.90 (Lenient)</span>
+        </div>
+      </div>
+
+      <button id="analyzeBtn" class="primary-btn">
+        <span class="btn-text">Analyze Authenticity</span>
+        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </section>
+
+    <!-- Right Column: Results & Feature Breakdown -->
+    <section class="card results-card" id="resultsSection">
+      <div class="card-header">
+        <h2>Diagnostic Assessment</h2>
+        <span class="badge badge-subtle">Real-Time</span>
+      </div>
+
+      <!-- Initial State Placeholder -->
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <h3>No Analysis Yet</h3>
+        <p>Type or choose a sample review on the left and click "Analyze Authenticity" to view full classification insights.</p>
+      </div>
+
+      <!-- Live Results View -->
+      <div id="resultsContent" class="results-content" style="display: none;">
+        <!-- Verdict Banner -->
+        <div class="verdict-banner" id="verdictBanner">
+          <div class="verdict-main">
+            <div class="verdict-icon" id="verdictIcon">🛡️</div>
+            <div>
+              <span class="verdict-title" id="verdictLabel">LIKELY AUTHENTIC</span>
+              <p class="verdict-desc" id="verdictSubtitle">Low risk of synthetic manipulation detected</p>
+            </div>
+          </div>
+          <div class="probability-box">
+            <div class="prob-num" id="probNumber">12%</div>
+            <div class="prob-label">Fake Probability</div>
+          </div>
+        </div>
+
+        <!-- Meter Bar -->
+        <div class="meter-wrapper">
+          <div class="meter-labels">
+            <span>Genuine</span>
+            <span>Suspicious</span>
+            <span>Synthetic / Fake</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meterFill" style="width: 12%;"></div>
+            <div class="meter-threshold-marker" id="thresholdMarker" style="left: 50%;"></div>
+          </div>
+        </div>
+
+        <!-- Feature Diagnostic Grid -->
+        <h3 class="subsection-title">Linguistic & Behavioral Telemetry</h3>
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-title">Sentiment Polarity</div>
+            <div class="feature-val" id="featSentiment">0.00</div>
+            <div class="feature-sub" id="featSentimentDesc">Neutral</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-title">Exclamation Marks</div>
+            <div class="feature-val" id="featExclamation">0</div>
+            <div class="feature-sub">Punctuation intensity</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-title">ALL-CAPS Words</div>
+            <div class="feature-val" id="featCaps">0</div>
+            <div class="feature-sub">Emotional shouting</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-title">Lexical Diversity</div>
+            <div class="feature-val" id="featDiversity">100%</div>
+            <div class="feature-sub">Unique word ratio</div>
+          </div>
+        </div>
+
+        <!-- Highlighted Clichés/Triggers -->
+        <div class="trigger-box" id="triggerContainer">
+          <div class="trigger-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Flagged Promotional Clichés</span>
+          </div>
+          <div class="trigger-tags" id="triggerTags">
+            <span class="no-triggers">None detected. Natural language pattern.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer container">
+    <p>Powered by VeriReview AI • Ready for Vercel Serverless Architecture</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
